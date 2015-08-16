@@ -16,10 +16,10 @@ public class DiaryController
 
 	}
 
-	public void createDiary(String inputStr, String date)
+	public void createDiary(String inputStr, String dir, String date)
 	{
 		//创建并保存日记文件
-		File file = new File(date + ".txt");
+		File file = new File(dir + "\\" + date + ".txt");
 		FileWriter outputFile;
 		try
 		{

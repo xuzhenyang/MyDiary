@@ -1,13 +1,17 @@
 package ui;
 
+import java.awt.AWTEvent;
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import javax.swing.JTextPane;
 
 import java.awt.BorderLayout;
+import java.awt.event.AWTEventListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.Calendar;
 
 import javax.swing.BorderFactory;
@@ -41,7 +45,7 @@ public class FrmMain implements ActionListener
 	private DiaryController diaryController = new DiaryController();
 	private DateController dateController = new DateController();
 	private String date = dateController.getTime(calendar);
-	//日记存放路径
+	// 日记存放路径
 	public static String dir = "H:\\MyDiary";
 
 	/**
@@ -72,6 +76,39 @@ public class FrmMain implements ActionListener
 	public FrmMain()
 	{
 		initialize();
+		// 键盘全局监听
+		Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener()
+		{
+			public void eventDispatched(AWTEvent event)
+			{
+				if (((KeyEvent) event).getID() == KeyEvent.KEY_PRESSED)
+				{
+					// 放入自己的键盘监听事件
+					// System.out.println(((KeyEvent) event).getKeyChar());
+					// System.out.println(((KeyEvent) event).getKeyCode());
+					// ((KeyEvent) event).getKeyCode();// 获取按键的code
+					// ((KeyEvent) event).getKeyChar();// 获取按键的字符
+
+					// save键的快捷键实现
+					if (((KeyEvent) event).getModifiers() == KeyEvent.CTRL_MASK
+							&& ((KeyEvent) event).getKeyCode() == 83)
+					{
+						btnSave.doClick();
+					}
+					else if (((KeyEvent) event).getModifiers() == KeyEvent.CTRL_MASK
+							&& ((KeyEvent) event).getKeyCode() == 37)
+					{
+						btnLast.doClick();
+					}
+					else if (((KeyEvent) event).getModifiers() == KeyEvent.CTRL_MASK
+							&& ((KeyEvent) event).getKeyCode() == 39)
+					{
+						btnNext.doClick();
+					}
+
+				}
+			}
+		}, AWTEvent.KEY_EVENT_MASK);
 	}
 
 	/**
@@ -122,7 +159,7 @@ public class FrmMain implements ActionListener
 
 	public void read(String date)
 	{
-		//读取日记
+		// 读取日记
 		String content = diaryController.getDiary(dir, date);
 		// 读取时可以直接在每行后加上换行符 所以暂时不需要此方法
 		// content = (new TextProcess()).readProcess(content);
@@ -131,10 +168,10 @@ public class FrmMain implements ActionListener
 
 	public void write(String date)
 	{
-		//写日记
+		// 写日记
 		String inputStr = textPane.getText();
 		inputStr = TextProcess.writeProcess(inputStr);
-		(new DiaryController()).createDiary(inputStr, date);
+		(new DiaryController()).createDiary(inputStr, dir, date);
 	}
 
 	@Override
