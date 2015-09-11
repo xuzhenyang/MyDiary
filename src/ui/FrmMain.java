@@ -2,6 +2,7 @@ package ui;
 
 import java.awt.AWTEvent;
 import java.awt.EventQueue;
+import java.awt.Font;
 
 import javax.swing.JFrame;
 import javax.swing.JTextPane;
@@ -12,6 +13,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.Calendar;
 
 import javax.swing.BorderFactory;
@@ -27,6 +30,8 @@ import control.DiaryController;
 import control.TextProcess;
 
 import javax.swing.JLabel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import java.awt.Toolkit;
 
@@ -35,7 +40,7 @@ public class FrmMain implements ActionListener
 
 	private JFrame frmDiary;
 	private JButton btnSave;
-	private JTextPane textPane;
+	private JTextPane textPane = new JTextPane();
 	private JButton btnLast;
 	private JButton btnNext;
 	private JLabel lblToday;
@@ -45,6 +50,8 @@ public class FrmMain implements ActionListener
 	private DiaryController diaryController = new DiaryController();
 	private DateController dateController = new DateController();
 	private String date = dateController.getTime(calendar);
+	//判断退出时是否已经保存
+	private boolean haveSaved = true;
 	// 日记存放路径
 	public static String dir = "H:\\MyDiary";
 
@@ -120,40 +127,63 @@ public class FrmMain implements ActionListener
 		frmDiary.setTitle("Diary");
 		frmDiary.setBounds(100, 100, 450, 300);
 		frmDiary.setLocationRelativeTo(null);// 使窗体居中显示
-		frmDiary.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		textPane = new JTextPane();
+		//设置点击右上角时不作任何操作
+		//		frmDiary.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frmDiary.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+		//设置字体
+		textPane.setFont(new Font("方正喵呜体", Font.PLAIN, 16));
+		textPane.getDocument().addDocumentListener(new Swing_OnValueChanged());
 		read(date);
 		frmDiary.getContentPane().add(textPane, BorderLayout.CENTER);
 
-		btnSave = new JButton("Save");
+		btnSave = new JButton("保存");
 		btnSave.setBorder(BorderFactory.createEtchedBorder());// 蚀刻样式
 		frmDiary.getContentPane().add(btnSave, BorderLayout.SOUTH);
 		btnSave.addActionListener(this);
 
-		btnLast = new JButton("Last");
+		btnLast = new JButton("前一天");
 		btnLast.setBorder(BorderFactory.createEtchedBorder());
 		frmDiary.getContentPane().add(btnLast, BorderLayout.WEST);
 		btnLast.addActionListener(this);
 
-		btnNext = new JButton("Next");
+		btnNext = new JButton("后一天");
 		btnNext.setBorder(BorderFactory.createEtchedBorder());
 		frmDiary.getContentPane().add(btnNext, BorderLayout.EAST);
 		btnNext.addActionListener(this);
 
-		lblToday = new JLabel("Today");
+		lblToday = new JLabel("今天");
 		lblToday.setText(dateController.getTime(calendar));
 		frmDiary.getContentPane().add(lblToday, BorderLayout.NORTH);
 
 		JMenuBar menuBar = new JMenuBar();
 		frmDiary.setJMenuBar(menuBar);
 
-		JMenu mnMenu = new JMenu("Menu");
+		JMenu mnMenu = new JMenu("菜单");
 		menuBar.add(mnMenu);
 
-		mnSetting = new JMenuItem("Setting");
+		mnSetting = new JMenuItem("设置");
 		mnMenu.add(mnSetting);
 		mnSetting.addActionListener(this);
+
+		//窗口关闭监听
+		frmDiary.addWindowListener(new WindowAdapter()
+		{
+			public void windowClosing(WindowEvent we)
+			{
+				if (haveSaved == false)
+				{
+					JOptionPane.showMessageDialog(null, "未保存", "提示",
+							JOptionPane.INFORMATION_MESSAGE);
+					//					return;
+				}
+				else
+				{
+					System.exit(0);
+				}
+			}
+		});
 
 	}
 
@@ -164,6 +194,8 @@ public class FrmMain implements ActionListener
 		// 读取时可以直接在每行后加上换行符 所以暂时不需要此方法
 		// content = (new TextProcess()).readProcess(content);
 		textPane.setText(content);
+		//每次读取日记的时候 先将标志位设置为已保存
+		haveSaved = true;
 	}
 
 	public void write(String date)
@@ -181,8 +213,10 @@ public class FrmMain implements ActionListener
 		if (e.getSource() == btnSave)
 		{
 			write(date);
-			JOptionPane.showMessageDialog(null, "Saved successfully",
-					"Success", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(null, "保存成功", "提示",
+					JOptionPane.INFORMATION_MESSAGE);
+			//保存后 修改标志位
+			haveSaved = true;
 		}
 		else if (e.getSource() == btnLast)
 		{
@@ -205,6 +239,27 @@ public class FrmMain implements ActionListener
 			dialog.setVisible(true);
 		}
 
+	}
+
+	//根据接口DocumentListener定义新类Swing_OnValueChanged 
+	class Swing_OnValueChanged implements DocumentListener
+	{ //输出变化及结果 
+		public void changedUpdate(DocumentEvent e)
+		{
+			System.out.println("Attribute Changed");
+		}
+
+		public void insertUpdate(DocumentEvent e)
+		{ //输出变化及结果 
+			System.out.println("Text Inserted");
+			//每次写日记的时候 还原是否保存的标志位
+			haveSaved = false;
+		}
+
+		public void removeUpdate(DocumentEvent e)
+		{ //输出变化及结果 
+			System.out.println("Text Removed");
+		}
 	}
 
 }
