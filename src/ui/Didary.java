@@ -1,0 +1,228 @@
+package ui;
+
+import java.awt.BorderLayout;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.Calendar;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextPane;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+
+import control.DateController;
+import control.DiaryController;
+import control.TextProcess;
+
+public class Didary
+{
+	/*要用到的各个组件*/
+	private static JTextPane textPane = new JTextPane();
+	private static JButton btnSave = new JButton("保存");
+	private static JButton btnLast = new JButton("前一天");
+	private static JButton btnNext = new JButton("后一天");
+	private static JLabel lblToday = new JLabel("今天");
+	private static JMenu mnMenu = new JMenu("菜单");
+	private static JMenuItem mnSetting = new JMenuItem("设置");
+	private static Calendar calendar = (new DateController())
+			.initializeCalendar();
+	private static DiaryController diaryController = new DiaryController();
+	private static DateController dateController = new DateController();
+	private static String date = dateController.getTime(calendar);
+	//判断退出时是否已经保存
+	private static boolean haveSaved = true;
+	// 日记存放路径
+	public static String dir = "H:\\MyDiary";
+
+	public static class myDiary extends JFrame implements ActionListener
+	{
+		/*用来切换的各个面板*/
+		private JPanel mainPanel = new JPanel();
+		private JPanel settingPanel = new JPanel();
+		
+		public myDiary()
+		{
+			//初始化frame窗体
+			setTitle("Diary");
+			setBounds(100, 100, 450, 300);
+			setLocationRelativeTo(null);// 使窗体居中显示
+
+			//设置点击右上角时不作任何操作
+			//		frmDiary.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+			
+			//初始化各版面
+			initMainPanel();
+			add(mainPanel);
+			
+			//窗口关闭监听
+			addWindowListener(new WindowAdapter()
+			{
+				public void windowClosing(WindowEvent we)
+				{
+					if (haveSaved == false)
+					{
+						JOptionPane.showMessageDialog(null, "未保存", "提示",
+								JOptionPane.INFORMATION_MESSAGE);
+						//					return;
+					}
+					else
+					{
+						System.exit(0);
+					}
+				}
+			});
+		}
+		
+		/*初始化主面板*/
+		public void initMainPanel()
+		{
+			mainPanel.setLayout(new BorderLayout(0, 0));
+
+			//设置字体
+			textPane.setFont(new Font("方正喵呜体", Font.PLAIN, 16));
+			textPane.getDocument().addDocumentListener(new Swing_OnValueChanged());
+			read(date);
+			mainPanel.add(textPane, BorderLayout.CENTER);
+
+			btnSave = new JButton("保存");
+			btnSave.setBorder(BorderFactory.createEtchedBorder());// 蚀刻样式
+			mainPanel.add(btnSave, BorderLayout.SOUTH);
+			btnSave.addActionListener(this);
+
+			btnLast = new JButton("前一天");
+			btnLast.setBorder(BorderFactory.createEtchedBorder());
+			mainPanel.add(btnLast, BorderLayout.WEST);
+			btnLast.addActionListener(this);
+
+			btnNext = new JButton("后一天");
+			btnNext.setBorder(BorderFactory.createEtchedBorder());
+			mainPanel.add(btnNext, BorderLayout.EAST);
+			btnNext.addActionListener(this);
+
+			lblToday = new JLabel("今天");
+			lblToday.setText(dateController.getTime(calendar));
+			mainPanel.add(lblToday, BorderLayout.NORTH);
+
+			JMenuBar menuBar = new JMenuBar();
+			setJMenuBar(menuBar);
+
+			JMenu mnMenu = new JMenu("菜单");
+			menuBar.add(mnMenu);
+
+			mnSetting = new JMenuItem("设置");
+			mnMenu.add(mnSetting);
+			mnSetting.addActionListener(this);
+		}
+
+		/*读取日记操作*/
+		public void read(String date)
+		{
+			// 读取日记
+			String content = diaryController.getDiary(dir, date);
+			// 读取时可以直接在每行后加上换行符 所以暂时不需要此方法
+			// content = (new TextProcess()).readProcess(content);
+			textPane.setText(content);
+			//每次读取日记的时候 先将标志位设置为已保存
+			haveSaved = true;
+		}
+
+		/*写日记操作*/
+		public void write(String date)
+		{
+			// 写日记
+			String inputStr = textPane.getText();
+			inputStr = TextProcess.writeProcess(inputStr);
+			(new DiaryController()).createDiary(inputStr, dir, date);
+		}
+		
+		/*按键监听*/
+		@Override
+		public void actionPerformed(ActionEvent e)
+		{
+			// TODO Auto-generated method stub
+			if (e.getSource() == btnSave)
+			{
+				write(date);
+				JOptionPane.showMessageDialog(null, "保存成功", "提示",
+						JOptionPane.INFORMATION_MESSAGE);
+				//保存后 修改标志位
+				haveSaved = true;
+			}
+			else if (e.getSource() == btnLast)
+			{
+				calendar = dateController.getLastDate(calendar);
+				date = dateController.getTime(calendar);
+				lblToday.setText(dateController.getTime(calendar));
+				read(date);
+			}
+			else if (e.getSource() == btnNext)
+			{
+				calendar = dateController.getNextDate(calendar);
+				date = dateController.getTime(calendar);
+				lblToday.setText(dateController.getTime(calendar));
+				read(date);
+			}
+			else if (e.getSource() == mnSetting)
+			{
+//				FrmSetting dialog = new FrmSetting();
+//				dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+//				dialog.setVisible(true);
+			}
+		}
+
+		//根据接口DocumentListener定义新类Swing_OnValueChanged 
+		class Swing_OnValueChanged implements DocumentListener
+		{ //输出变化及结果 
+			public void changedUpdate(DocumentEvent e)
+			{
+//				System.out.println("Attribute Changed");
+			}
+
+			public void insertUpdate(DocumentEvent e)
+			{ //输出变化及结果 
+//				System.out.println("Text Inserted");
+				//每次写日记的时候 还原是否保存的标志位
+				haveSaved = false;
+			}
+
+			public void removeUpdate(DocumentEvent e)
+			{ //输出变化及结果 
+//				System.out.println("Text Removed");
+			}
+		}
+	}
+	
+
+	public static void main(String[] args)
+	{
+		//test
+		EventQueue.invokeLater(new Runnable()
+		{
+			public void run()
+			{
+				try
+				{
+					myDiary user = new myDiary();
+					user.setVisible(true);
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+}
