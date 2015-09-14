@@ -18,6 +18,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -34,6 +35,10 @@ public class Didary
 	private static JButton btnLast = new JButton("前一天");
 	private static JButton btnNext = new JButton("后一天");
 	private static JLabel lblToday = new JLabel("今天");
+	private static JLabel lblSetting = new JLabel("路径 ：");
+	private static JTextField edtSetting = new JTextField(40);
+	private static JButton btnOk = new JButton("确定");
+	private static JButton btnCancel = new JButton("取消");
 	private static JMenu mnMenu = new JMenu("菜单");
 	private static JMenuItem mnSetting = new JMenuItem("设置");
 	private static Calendar calendar = (new DateController())
@@ -58,6 +63,16 @@ public class Didary
 			setTitle("Diary");
 			setBounds(100, 100, 450, 300);
 			setLocationRelativeTo(null);// 使窗体居中显示
+			
+			JMenuBar menuBar = new JMenuBar();
+			setJMenuBar(menuBar);
+
+			JMenu mnMenu = new JMenu("菜单");
+			menuBar.add(mnMenu);
+
+			mnSetting = new JMenuItem("设置");
+			mnMenu.add(mnSetting);
+			mnSetting.addActionListener(this);
 
 			//设置点击右上角时不作任何操作
 			//		frmDiary.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -66,6 +81,10 @@ public class Didary
 			//初始化各版面
 			initMainPanel();
 			add(mainPanel);
+			mainPanel.setVisible(true);
+			initSettingPanel();
+			add(settingPanel);
+			settingPanel.setVisible(false);
 			
 			//窗口关闭监听
 			addWindowListener(new WindowAdapter()
@@ -89,6 +108,7 @@ public class Didary
 		/*初始化主面板*/
 		public void initMainPanel()
 		{
+			mainPanel.setBounds(0, 0, 435, 235);
 			mainPanel.setLayout(new BorderLayout(0, 0));
 
 			//设置字体
@@ -97,36 +117,47 @@ public class Didary
 			read(date);
 			mainPanel.add(textPane, BorderLayout.CENTER);
 
-			btnSave = new JButton("保存");
 			btnSave.setBorder(BorderFactory.createEtchedBorder());// 蚀刻样式
 			mainPanel.add(btnSave, BorderLayout.SOUTH);
 			btnSave.addActionListener(this);
 
-			btnLast = new JButton("前一天");
 			btnLast.setBorder(BorderFactory.createEtchedBorder());
 			mainPanel.add(btnLast, BorderLayout.WEST);
 			btnLast.addActionListener(this);
 
-			btnNext = new JButton("后一天");
 			btnNext.setBorder(BorderFactory.createEtchedBorder());
 			mainPanel.add(btnNext, BorderLayout.EAST);
 			btnNext.addActionListener(this);
 
-			lblToday = new JLabel("今天");
 			lblToday.setText(dateController.getTime(calendar));
 			mainPanel.add(lblToday, BorderLayout.NORTH);
 
-			JMenuBar menuBar = new JMenuBar();
-			setJMenuBar(menuBar);
-
-			JMenu mnMenu = new JMenu("菜单");
-			menuBar.add(mnMenu);
-
-			mnSetting = new JMenuItem("设置");
-			mnMenu.add(mnSetting);
-			mnSetting.addActionListener(this);
 		}
 
+		/*初始化设置面板*/
+		public void initSettingPanel()
+		{
+			settingPanel.setBounds(0, 0, 435, 235);
+			settingPanel.setLayout(null);
+			
+			lblSetting.setBounds(100, 80, 50, 20);
+			settingPanel.add(lblSetting);
+			
+			edtSetting.setText(dir);
+//			System.out.println(dir);
+//			System.out.println(edtSetting.getText());
+			edtSetting.setBounds(160, 80, 150, 20);
+			settingPanel.add(edtSetting);
+			
+			btnOk.setBounds(240, 180, 70, 30);
+			settingPanel.add(btnOk);
+			btnOk.addActionListener(this);
+			
+			btnCancel.setBounds(330, 180, 70, 30);
+			settingPanel.add(btnCancel);
+			btnCancel.addActionListener(this);
+		}
+		
 		/*读取日记操作*/
 		public void read(String date)
 		{
@@ -177,9 +208,23 @@ public class Didary
 			}
 			else if (e.getSource() == mnSetting)
 			{
-//				FrmSetting dialog = new FrmSetting();
-//				dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-//				dialog.setVisible(true);
+				mainPanel.setVisible(false);
+				settingPanel.setVisible(true);
+			}
+			else if (e.getSource() == btnOk)
+			{
+/*				dir = edtSetting.getText();
+				dir.replace("\\", "\\\\");
+				System.out.println(dir);
+				JOptionPane.showMessageDialog(null, "保存成功", "提示",
+						JOptionPane.INFORMATION_MESSAGE);*/
+				mainPanel.setVisible(true);
+				settingPanel.setVisible(false);
+			}
+			else if (e.getSource() == btnCancel)
+			{
+				mainPanel.setVisible(true);
+				settingPanel.setVisible(false);
 			}
 		}
 
