@@ -1,10 +1,14 @@
 package ui;
 
+import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.Toolkit;
+import java.awt.event.AWTEventListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Calendar;
@@ -85,6 +89,40 @@ public class Didary
 			initSettingPanel();
 			add(settingPanel);
 			settingPanel.setVisible(false);
+			
+			// 键盘全局监听
+			Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener()
+			{
+				public void eventDispatched(AWTEvent event)
+				{
+					if (((KeyEvent) event).getID() == KeyEvent.KEY_PRESSED)
+					{
+						// 放入自己的键盘监听事件
+						// System.out.println(((KeyEvent) event).getKeyChar());
+						// System.out.println(((KeyEvent) event).getKeyCode());
+						// ((KeyEvent) event).getKeyCode();// 获取按键的code
+						// ((KeyEvent) event).getKeyChar();// 获取按键的字符
+
+						// save键的快捷键实现
+						if (((KeyEvent) event).getModifiers() == KeyEvent.CTRL_MASK
+								&& ((KeyEvent) event).getKeyCode() == 83)
+						{
+							btnSave.doClick();
+						}
+						else if (((KeyEvent) event).getModifiers() == KeyEvent.CTRL_MASK
+								&& ((KeyEvent) event).getKeyCode() == 37)
+						{
+							btnLast.doClick();
+						}
+						else if (((KeyEvent) event).getModifiers() == KeyEvent.CTRL_MASK
+								&& ((KeyEvent) event).getKeyCode() == 39)
+						{
+							btnNext.doClick();
+						}
+
+					}
+				}
+			}, AWTEvent.KEY_EVENT_MASK);
 			
 			//窗口关闭监听
 			addWindowListener(new WindowAdapter()
