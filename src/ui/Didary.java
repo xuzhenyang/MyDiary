@@ -181,9 +181,8 @@ public class Didary
 			lblSetting.setBounds(100, 80, 50, 20);
 			settingPanel.add(lblSetting);
 			
+			dir = dir.replace("\\", "\\\\");
 			edtSetting.setText(dir);
-//			System.out.println(dir);
-//			System.out.println(edtSetting.getText());
 			edtSetting.setBounds(160, 80, 150, 20);
 			settingPanel.add(edtSetting);
 			
@@ -251,11 +250,9 @@ public class Didary
 			}
 			else if (e.getSource() == btnOk)
 			{
-/*				dir = edtSetting.getText();
-				dir.replace("\\", "\\\\");
-				System.out.println(dir);
+				dir = edtSetting.getText();
 				JOptionPane.showMessageDialog(null, "保存成功", "提示",
-						JOptionPane.INFORMATION_MESSAGE);*/
+						JOptionPane.INFORMATION_MESSAGE);
 				mainPanel.setVisible(true);
 				settingPanel.setVisible(false);
 			}
