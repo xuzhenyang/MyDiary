@@ -26,6 +26,9 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
+import javax.swing.undo.UndoManager;
 
 import control.DateController;
 import control.DiaryController;
@@ -54,20 +57,22 @@ public class Didary
 	private static boolean haveSaved = true;
 	// 日记存放路径
 	public static String dir = "H:\\MyDiary";
+	//撤销管理类
+	private static UndoManager um = new UndoManager();
 
 	public static class myDiary extends JFrame implements ActionListener
 	{
 		/*用来切换的各个面板*/
 		private JPanel mainPanel = new JPanel();
 		private JPanel settingPanel = new JPanel();
-		
+
 		public myDiary()
 		{
 			//初始化frame窗体
 			setTitle("Diary");
 			setBounds(100, 100, 450, 300);
 			setLocationRelativeTo(null);// 使窗体居中显示
-			
+
 			JMenuBar menuBar = new JMenuBar();
 			setJMenuBar(menuBar);
 
@@ -81,7 +86,7 @@ public class Didary
 			//设置点击右上角时不作任何操作
 			//		frmDiary.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-			
+
 			//初始化各版面
 			initMainPanel();
 			add(mainPanel);
@@ -89,41 +94,48 @@ public class Didary
 			initSettingPanel();
 			add(settingPanel);
 			settingPanel.setVisible(false);
-			
+
 			// 键盘全局监听
-			Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener()
-			{
-				public void eventDispatched(AWTEvent event)
-				{
-					if (((KeyEvent) event).getID() == KeyEvent.KEY_PRESSED)
+			Toolkit.getDefaultToolkit().addAWTEventListener(
+					new AWTEventListener()
 					{
-						// 放入自己的键盘监听事件
-						// System.out.println(((KeyEvent) event).getKeyChar());
-						// System.out.println(((KeyEvent) event).getKeyCode());
-						// ((KeyEvent) event).getKeyCode();// 获取按键的code
-						// ((KeyEvent) event).getKeyChar();// 获取按键的字符
+						public void eventDispatched(AWTEvent event)
+						{
+							if (((KeyEvent) event).getID() == KeyEvent.KEY_PRESSED)
+							{
+								// 放入自己的键盘监听事件
+								// System.out.println(((KeyEvent) event).getKeyChar());
+//								 System.out.println(((KeyEvent) event).getKeyCode());
+								// ((KeyEvent) event).getKeyCode();// 获取按键的code
+								// ((KeyEvent) event).getKeyChar();// 获取按键的字符
 
-						// save键的快捷键实现
-						if (((KeyEvent) event).getModifiers() == KeyEvent.CTRL_MASK
-								&& ((KeyEvent) event).getKeyCode() == 83)
-						{
-							btnSave.doClick();
-						}
-						else if (((KeyEvent) event).getModifiers() == KeyEvent.CTRL_MASK
-								&& ((KeyEvent) event).getKeyCode() == 37)
-						{
-							btnLast.doClick();
-						}
-						else if (((KeyEvent) event).getModifiers() == KeyEvent.CTRL_MASK
-								&& ((KeyEvent) event).getKeyCode() == 39)
-						{
-							btnNext.doClick();
-						}
+								// save键的快捷键实现
+								if (((KeyEvent) event).getModifiers() == KeyEvent.CTRL_MASK
+										&& ((KeyEvent) event).getKeyCode() == 83)
+								{
+									btnSave.doClick();
+								}
+								else if (((KeyEvent) event).getModifiers() == KeyEvent.CTRL_MASK
+										&& ((KeyEvent) event).getKeyCode() == 37)
+								{
+									btnLast.doClick();
+								}
+								else if (((KeyEvent) event).getModifiers() == KeyEvent.CTRL_MASK
+										&& ((KeyEvent) event).getKeyCode() == 39)
+								{
+									btnNext.doClick();
+								}
+								else if (((KeyEvent) event).getModifiers() == KeyEvent.CTRL_MASK
+										&& ((KeyEvent) event).getKeyCode() == 90)
+								{
+									//ctrl+z实现撤销功能
+									um.undo();
+								}
 
-					}
-				}
-			}, AWTEvent.KEY_EVENT_MASK);
-			
+							}
+						}
+					}, AWTEvent.KEY_EVENT_MASK);
+
 			//窗口关闭监听
 			addWindowListener(new WindowAdapter()
 			{
@@ -142,7 +154,7 @@ public class Didary
 				}
 			});
 		}
-		
+
 		/*初始化主面板*/
 		public void initMainPanel()
 		{
@@ -151,7 +163,8 @@ public class Didary
 
 			//设置字体
 			textPane.setFont(new Font("方正喵呜体", Font.PLAIN, 16));
-			textPane.getDocument().addDocumentListener(new Swing_OnValueChanged());
+			textPane.getDocument().addDocumentListener(
+					new Swing_OnValueChanged());
 			read(date);
 			mainPanel.add(textPane, BorderLayout.CENTER);
 
@@ -170,6 +183,16 @@ public class Didary
 			lblToday.setText(dateController.getTime(calendar));
 			mainPanel.add(lblToday, BorderLayout.NORTH);
 
+			textPane.getDocument().addUndoableEditListener(
+					new UndoableEditListener()
+					{//注册撤销可编辑监听器
+						public void undoableEditHappened(UndoableEditEvent e)
+						{
+							um.addEdit(e.getEdit());
+						}
+
+					});//编辑撤销的监听
+
 		}
 
 		/*初始化设置面板*/
@@ -177,24 +200,24 @@ public class Didary
 		{
 			settingPanel.setBounds(0, 0, 435, 235);
 			settingPanel.setLayout(null);
-			
+
 			lblSetting.setBounds(100, 80, 50, 20);
 			settingPanel.add(lblSetting);
-			
+
 			dir = dir.replace("\\", "\\\\");
 			edtSetting.setText(dir);
 			edtSetting.setBounds(160, 80, 150, 20);
 			settingPanel.add(edtSetting);
-			
+
 			btnOk.setBounds(240, 180, 70, 30);
 			settingPanel.add(btnOk);
 			btnOk.addActionListener(this);
-			
+
 			btnCancel.setBounds(330, 180, 70, 30);
 			settingPanel.add(btnCancel);
 			btnCancel.addActionListener(this);
 		}
-		
+
 		/*读取日记操作*/
 		public void read(String date)
 		{
@@ -215,7 +238,7 @@ public class Didary
 			inputStr = TextProcess.writeProcess(inputStr);
 			(new DiaryController()).createDiary(inputStr, dir, date);
 		}
-		
+
 		/*按键监听*/
 		@Override
 		public void actionPerformed(ActionEvent e)
@@ -268,23 +291,22 @@ public class Didary
 		{ //输出变化及结果 
 			public void changedUpdate(DocumentEvent e)
 			{
-//				System.out.println("Attribute Changed");
+				//				System.out.println("Attribute Changed");
 			}
 
 			public void insertUpdate(DocumentEvent e)
 			{ //输出变化及结果 
-//				System.out.println("Text Inserted");
+			//				System.out.println("Text Inserted");
 				//每次写日记的时候 还原是否保存的标志位
 				haveSaved = false;
 			}
 
 			public void removeUpdate(DocumentEvent e)
 			{ //输出变化及结果 
-//				System.out.println("Text Removed");
+			//				System.out.println("Text Removed");
 			}
 		}
 	}
-	
 
 	public static void main(String[] args)
 	{
