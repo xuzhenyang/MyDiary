@@ -22,6 +22,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.event.DocumentEvent;
@@ -38,6 +39,7 @@ public class Didary
 {
 	/*要用到的各个组件*/
 	private static JTextPane textPane = new JTextPane();
+	private static JScrollPane scrollPane = new JScrollPane(textPane);
 	private static JButton btnSave = new JButton("保存");
 	private static JButton btnLast = new JButton("前一天");
 	private static JButton btnNext = new JButton("后一天");
@@ -160,13 +162,16 @@ public class Didary
 		{
 			mainPanel.setBounds(0, 0, 435, 235);
 			mainPanel.setLayout(new BorderLayout(0, 0));
-
+			
 			//设置字体
 			textPane.setFont(new Font("方正喵呜体", Font.PLAIN, 16));
 			textPane.getDocument().addDocumentListener(
 					new Swing_OnValueChanged());
 			read(date);
-			mainPanel.add(textPane, BorderLayout.CENTER);
+//			mainPanel.add(textPane, BorderLayout.CENTER);
+			
+			//加入垂直滚动条
+			mainPanel.add(scrollPane, BorderLayout.CENTER);
 
 			btnSave.setBorder(BorderFactory.createEtchedBorder());// 蚀刻样式
 			mainPanel.add(btnSave, BorderLayout.SOUTH);
